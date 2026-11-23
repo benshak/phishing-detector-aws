@@ -49,3 +49,9 @@ variable "db_password" {
     error_message = "Use 12-40 letters and digits only for db_password."
   }
 }
+
+variable "cache_node_type" {
+  description = "ElastiCache node size (smallest general-purpose node)"
+  type        = string
+  default     = "cache.t3.micro"
+}

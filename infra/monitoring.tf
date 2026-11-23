@@ -164,6 +164,19 @@ resource "aws_cloudwatch_dashboard" "main" {
           [{ expression = "SEARCH('{CWAgent,InstanceId,fstype,path} MetricName=\"disk_used_percent\"', 'Average', 300)", id = "disk", label = "Disk /" }],
         ]
       } }),
+      # ElastiCache reports hits and misses by itself (namespace AWS/ElastiCache), no app code needed.
+      # Redis reports per node; our single node is always "0001".
+      # Hit = page served from the cache; miss = had to ask the database (first view, or right after a new check).
+      merge(local.widget, { x = 0, y = 18, width = 24, properties = {
+        title  = "Cache hits vs misses (ElastiCache)"
+        region = var.aws_region
+        stat   = "Sum"
+        period = 60
+        metrics = [
+          ["AWS/ElastiCache", "CacheHits", "CacheClusterId", aws_elasticache_cluster.main.cluster_id, "CacheNodeId", "0001", { label = "Hits (served from cache)", color = "#2ca02c" }],
+          ["AWS/ElastiCache", "CacheMisses", "CacheClusterId", aws_elasticache_cluster.main.cluster_id, "CacheNodeId", "0001", { label = "Misses (went to the database)", color = "#ff7f0e" }],
+        ]
+      } }),
     ]
   })
 }

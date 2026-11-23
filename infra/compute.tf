@@ -43,7 +43,7 @@ resource "aws_iam_instance_profile" "app" {
 
 locals {
   # App files copied onto each server (tests and samples are not needed there).
-  app_files = ["app.py", "db.py", "detector.py", "templates/index.html", "requirements.txt"]
+  app_files = ["app.py", "db.py", "cache.py", "detector.py", "templates/index.html", "requirements.txt"]
 
   log_group_name = "/${var.project_name}/app"
 }
@@ -64,7 +64,7 @@ data "cloudinit_config" "app" {
           content = replace(file("${path.module}/../app/${f}"), "\r\n", "\n")
         }],
         [
-          # Database settings that db.py reads. 0600 = only root can read (holds the password).
+          # Database and cache settings that db.py and cache.py read. 0600 = only root can read (holds the password).
           {
             path        = "/etc/phishing/app.env"
             permissions = "0600"
@@ -74,6 +74,8 @@ data "cloudinit_config" "app" {
               "DB_NAME=${var.db_name}",
               "DB_USER=${var.db_username}",
               "DB_PASSWORD=${var.db_password}",
+              "REDIS_HOST=${aws_elasticache_cluster.main.cache_nodes[0].address}",
+              "REDIS_PORT=${aws_elasticache_cluster.main.port}",
               "",
             ])
           },

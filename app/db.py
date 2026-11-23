@@ -8,6 +8,8 @@ import os
 import sqlite3
 from datetime import datetime, timezone
 
+import cache
+
 # Set only on the EC2 servers; when it is missing we are running locally.
 DB_HOST = os.environ.get("DB_HOST")
 # Local database file, used only when DB_HOST is not set.
@@ -24,6 +26,12 @@ if DB_HOST:
 else:
     PLACEHOLDER = "?"
     ID_COLUMN = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+
+# The history table on the page is read on every page view, so it is kept in the cache.
+RECENT_LIMIT = 20
+RECENT_KEY = f"recent_checks:{RECENT_LIMIT}"
+# Safety net: even if a clear is missed, a cached copy lives at most 60 seconds.
+RECENT_TTL_SECONDS = 60
 
 
 def get_connection():
@@ -91,14 +99,25 @@ def save_check(result):
             result["verdict"],
         ),
     )
+    # The history just changed, so the cached copy is out of date. The cache is shared,
+    # so clearing it here makes both servers read the fresh history.
+    cache.delete(RECENT_KEY)
 
 
-def recent_checks(limit=20):
-    """Return the latest checks, newest first, as a list of dicts."""
+def recent_checks():
+    """Return the latest checks, newest first, as a list of dicts.
+
+    Read from the cache when possible; otherwise from the database, then cached.
+    """
+    cached = cache.get_json(RECENT_KEY)
+    if cached is not None:
+        return cached
     rows = run_query(
-        "SELECT * FROM checks ORDER BY id DESC LIMIT ?", (limit,), fetch=True
+        "SELECT * FROM checks ORDER BY id DESC LIMIT ?", (RECENT_LIMIT,), fetch=True
     )
-    return [dict(row) for row in rows]
+    checks = [dict(row) for row in rows]
+    cache.set_json(RECENT_KEY, checks, RECENT_TTL_SECONDS)
+    return checks
 
 
 def sender_flagged_before(sender):

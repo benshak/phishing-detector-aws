@@ -15,6 +15,11 @@ output "rds_endpoint" {
   value       = aws_db_instance.main.address
 }
 
+output "redis_endpoint" {
+  description = "Cache address (reachable only from inside the VPC)"
+  value       = aws_elasticache_cluster.main.cache_nodes[0].address
+}
+
 output "log_group" {
   description = "CloudWatch log group with the app logs"
   value       = aws_cloudwatch_log_group.app.name
