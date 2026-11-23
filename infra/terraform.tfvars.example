@@ -1,0 +1,4 @@
+# Copy this file to terraform.tfvars (same folder) and put a real password there.
+# terraform.tfvars is git-ignored, so the password never reaches GitHub.
+# 12-40 letters and digits only.
+db_password = "ChangeMe123456"

@@ -1,0 +1,22 @@
+# systemd unit: keeps the phishing detector running under gunicorn.
+[Unit]
+Description=Phishing detector (gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=phishing
+WorkingDirectory=/opt/phishing
+# DB_HOST, DB_PASSWORD etc. for db.py
+EnvironmentFile=/etc/phishing/app.env
+# 2 worker processes on port 8000; --preload creates the table once before forking.
+ExecStart=/opt/phishing/venv/bin/gunicorn --bind 0.0.0.0:8000 --workers 2 --preload app:app
+# Everything the app prints goes to this file, which the CloudWatch agent ships.
+StandardOutput=append:/var/log/phishing/app.log
+StandardError=append:/var/log/phishing/app.log
+# If it crashes (for example RDS not reachable yet), try again after 5 seconds.
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

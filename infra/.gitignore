@@ -1,0 +1,11 @@
+# Terraform working folder (downloaded providers)
+.terraform/
+# State files contain real resource details and the database password
+*.tfstate
+*.tfstate.*
+# Real variable values (the database password)
+terraform.tfvars
+# Saved plan files
+*.tfplan
+crash.log
+# Keep .terraform.lock.hcl in git: it pins the exact provider versions.
