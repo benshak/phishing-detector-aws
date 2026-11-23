@@ -1,0 +1,4 @@
+From: IT Desk <it@company-mail.top>
+Subject: Password expires today
+
+Please act now and confirm your password at https://reset-portal.top/login

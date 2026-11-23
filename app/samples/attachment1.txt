@@ -1,0 +1,15 @@
+From: Billing <billing@invoices-online.net>
+Subject: Your invoice
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="XYZ"
+
+--XYZ
+Content-Type: text/plain
+
+Please see the attached invoice.
+--XYZ
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="invoice.pdf.exe"
+
+AAAA
+--XYZ--
